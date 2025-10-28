@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::{any::TypeId, marker::PhantomData};
 
 use bevy_app::{App, Plugin};
