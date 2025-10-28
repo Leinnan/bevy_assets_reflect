@@ -5,6 +5,7 @@ use bevy_asset::{io::Reader, AssetApp};
 use bevy_ecs::reflect::AppTypeRegistry;
 use bevy_reflect::{serde::TypedReflectDeserializer, TypeRegistryArc};
 use serde::de::DeserializeSeed;
+use thiserror::Error;
 
 /// Plugin to load your asset type `A` from json files.
 pub struct JsonReflectAssetPlugin<A> {
@@ -39,12 +40,28 @@ pub struct ReflectionAssetLoader<T> {
     extensions: Vec<&'static str>,
 }
 
+#[derive(Debug, Error)]
+pub enum ReflectLoaderError {
+    /// An [IO Error](std::io::Error)
+    #[error("Could not read the file: {0}")]
+    Io(#[from] std::io::Error),
+    /// A [JSON Error](serde_json::error::Error)
+    #[error("Could not parse the JSON: {0}")]
+    JsonError(#[from] serde_json::error::Error),
+    /// Type not registered
+    #[error("Type not registered")]
+    TypeNotRegistered,
+    /// Failed to downcast
+    #[error("Failed to downcast")]
+    FailedToDowncast,
+}
+
 impl<T: bevy_reflect::Reflect + bevy_asset::Asset> bevy_asset::AssetLoader
     for ReflectionAssetLoader<T>
 {
     type Asset = T;
     type Settings = ();
-    type Error = String;
+    type Error = ReflectLoaderError;
 
     async fn load(
         &self,
@@ -53,19 +70,17 @@ impl<T: bevy_reflect::Reflect + bevy_asset::Asset> bevy_asset::AssetLoader
         _load_context: &mut bevy_asset::LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut bytes = Vec::new();
-        let Ok(_) = reader.read_to_end(&mut bytes).await else {
-            return Err("Failed to read the translation csv file".to_string());
-        };
+        reader.read_to_end(&mut bytes).await?;
         let type_registry = self.registry.read();
         let Some(registration) = type_registry.get(TypeId::of::<T>()) else {
-            return Err("Type not registered".to_string());
+            return Err(ReflectLoaderError::TypeNotRegistered);
         };
-        let value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         let deserializer = TypedReflectDeserializer::new(registration, &type_registry);
         let reflect_value = deserializer.deserialize(value).unwrap();
         reflect_value
             .try_take::<T>()
-            .map_err(|_| "Failed to deserialize the asset".to_string())
+            .map_err(|_| ReflectLoaderError::FailedToDowncast)
     }
 
     fn extensions(&self) -> &[&str] {
