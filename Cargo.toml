@@ -1,0 +1,24 @@
+[package]
+name = "bevy_assets_reflect"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+bevy_app = { version = "0.17.0" }
+bevy_asset = { version = "0.17.0" }
+bevy_ecs = { version = "0.17.0" }
+bevy_reflect = { version = "0.17.0" }
+bevy_ui = { version = "0.17.0" }
+bevy_derive = { version = "0.17.0" }
+bevy_device_lang = { version = "0.6", optional = true }
+atomicow = { version = "1.1", default-features = false, features = ["std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints.clippy]
+# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
+# request more than 7 arguments -- which triggers this lint.
+too_many_arguments = "allow"
+# Queries that access many components may trigger this lint.
+type_complexity = "allow"
