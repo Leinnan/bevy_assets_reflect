@@ -77,7 +77,7 @@ impl<T: bevy_reflect::Reflect + bevy_asset::Asset> bevy_asset::AssetLoader
         };
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         let deserializer = TypedReflectDeserializer::new(registration, &type_registry);
-        let reflect_value = deserializer.deserialize(value).unwrap();
+        let reflect_value = deserializer.deserialize(value)?;
         reflect_value
             .try_take::<T>()
             .map_err(|_| ReflectLoaderError::FailedToDowncast)

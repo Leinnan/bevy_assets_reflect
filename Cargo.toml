@@ -3,6 +3,11 @@ name = "bevy_assets_reflect"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+description = "Reflection based asset loader plugin for Bevy"
+readme = "README.md"
+repository = "https://github.com/Leinnan/bevy_assets_reflect"
+authors = ["Piotr Siuszko <siuszko@zoho.com>"]
+keywords = ["bevy", "assets", "reflection", "plugin"]
 
 [dependencies]
 bevy_app = { version = "0.17.0" }
@@ -16,10 +21,3 @@ atomicow = { version = "1.1", default-features = false, features = ["std"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2.0"
-
-[lints.clippy]
-# Bevy supplies arguments to systems via dependency injection, so it's natural for systems to
-# request more than 7 arguments -- which triggers this lint.
-too_many_arguments = "allow"
-# Queries that access many components may trigger this lint.
-type_complexity = "allow"
