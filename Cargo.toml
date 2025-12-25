@@ -49,5 +49,6 @@ bevy = { version = "0.17", default-features = false, features = [
     "default_font",
     "multi_threaded",
     "asset_processor",
-    "file_watcher"
+    "file_watcher",
+    "wayland"
 ] }
