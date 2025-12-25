@@ -48,5 +48,6 @@ bevy = { version = "0.17", default-features = false, features = [
     "bevy_winit",
     "default_font",
     "multi_threaded",
-    "asset_processor"
+    "asset_processor",
+    "file_watcher"
 ] }

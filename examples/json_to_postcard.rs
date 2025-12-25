@@ -24,12 +24,17 @@ struct AssetStorage(Handle<DataAsset>);
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(AssetPlugin {
+            mode: AssetMode::Processed,
             file_path: "examples/assets".to_string(),
             processed_file_path: "examples/imported_assets/Default".to_string(),
             ..Default::default()
         }))
         .register_type::<DataAsset>()
-        .add_plugins(bevy_assets_reflect::ReflectAssetPlugin::<DataAsset>::new_json(&["data.json"]))
+        .add_plugins(
+            bevy_assets_reflect::ReflectAssetPlugin::<DataAsset>::new_json(&["data.json"])
+                .with_save_format(bevy_assets_reflect::AssetFormat::Postcard)
+                .with_default_assets_processors(true),
+        )
         .add_systems(Startup, setup)
         .add_systems(Update, on_loaded)
         .run();

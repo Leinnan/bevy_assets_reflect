@@ -23,6 +23,7 @@ pub struct ReflectAssetPlugin<A> {
     _marker: PhantomData<A>,
     default_save_format: Option<AssetFormat>,
     default_load_format: Option<AssetFormat>,
+    register_default_processors: bool,
 }
 
 impl<A: bevy_reflect::Reflect + bevy_asset::Asset> Plugin for ReflectAssetPlugin<A> {
@@ -46,9 +47,19 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> Plugin for ReflectAssetPlugin
                 IdentityAssetTransformer<A>,
                 ReflectionAssetSaver<A>,
             >>(LoadTransformAndSave::new(
-                IdentityAssetTransformer::<A>::new(),
+                IdentityAssetTransformer::<A>::default(),
                 saver,
             ));
+
+        if self.register_default_processors {
+            for extension in self.extensions.iter() {
+                app.set_default_asset_processor::<LoadTransformAndSave<
+                    ReflectionAssetLoader<A>,
+                    bevy_asset::transformer::IdentityAssetTransformer<A>,
+                    ReflectionAssetSaver<A>,
+                >>(extension);
+            }
+        }
     }
 }
 
@@ -60,19 +71,41 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> ReflectAssetPlugin<A> {
             _marker: PhantomData,
             default_load_format: None,
             default_save_format: None,
+            register_default_processors: false,
         }
     }
+    #[cfg(feature = "json")]
     /// Create a new plugin that will load assets from files with the given extensions.
-    pub fn with_default_save_format(self, default_format: AssetFormat) -> Self {
+    pub fn new_json(extensions: &[&'static str]) -> Self {
+        Self::new(extensions)
+            .with_load_format(AssetFormat::Json)
+            .with_save_format(AssetFormat::Json)
+    }
+    #[cfg(feature = "postcard")]
+    /// Create a new plugin that will load assets from files with the given extensions.
+    pub fn new_postcard(extensions: &[&'static str]) -> Self {
+        Self::new(extensions)
+            .with_load_format(AssetFormat::Postcard)
+            .with_save_format(AssetFormat::Postcard)
+    }
+    /// Create a new plugin that will load assets from files with the given extensions.
+    pub fn with_save_format(self, default_format: AssetFormat) -> Self {
         Self {
             default_save_format: Some(default_format),
             ..self
         }
     }
     /// Create a new plugin that will load assets from files with the given extensions.
-    pub fn with_default_load_format(self, default_format: AssetFormat) -> Self {
+    pub fn with_load_format(self, default_format: AssetFormat) -> Self {
         Self {
             default_load_format: Some(default_format),
+            ..self
+        }
+    }
+
+    pub fn with_default_assets_processors(self, register_default_processors: bool) -> Self {
+        Self {
+            register_default_processors,
             ..self
         }
     }
@@ -254,22 +287,25 @@ impl<A: bevy_asset::Asset + bevy_reflect::Reflect> bevy_asset::saver::AssetSaver
         asset: bevy_asset::saver::SavedAsset<'_, Self::Asset>,
         settings: &Self::Settings,
     ) -> Result<<Self::OutputLoader as bevy_asset::AssetLoader>::Settings, Self::Error> {
+        let Some(format) = settings.format.or(self.default_format) else {
+            return Err(ReflectLoaderError::NoFormatSpecified);
+        };
         let reflect_serialize = {
             let type_registry = self.registry.read();
             let serializer =
                 TypedReflectSerializer::new(asset.as_partial_reflect(), &type_registry);
 
-            match settings.format.or(self.default_format) {
+            match format {
                 #[cfg(feature = "postcard")]
-                Some(AssetFormat::Postcard) => {
+                AssetFormat::Postcard => {
                     let bytes = postcard::to_stdvec(&serializer)
                         .map_err(|_| ReflectLoaderError::WritePostcardError)?;
                     Ok(bytes)
                 }
                 #[cfg(feature = "json")]
-                Some(AssetFormat::Json) => serde_json::to_vec(&serializer),
+                AssetFormat::Json => serde_json::to_vec(&serializer),
                 #[cfg(feature = "json")]
-                Some(AssetFormat::JsonPretty) => serde_json::to_vec_pretty(&serializer),
+                AssetFormat::JsonPretty => serde_json::to_vec_pretty(&serializer),
                 _ => return Err(ReflectLoaderError::NoFormatSpecified),
             }
         }?;
@@ -277,6 +313,8 @@ impl<A: bevy_asset::Asset + bevy_reflect::Reflect> bevy_asset::saver::AssetSaver
             .write_all(&reflect_serialize)
             .await
             .map_err(ReflectLoaderError::WriteError)?;
-        Ok(*settings)
+        Ok(ReflectionAssetSettings {
+            format: Some(format),
+        })
     }
 }
