@@ -1,17 +1,26 @@
 [package]
 name = "bevy_assets_reflect"
-version = "0.1.1"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "Reflection based asset loader plugin for Bevy"
 readme = "README.md"
 repository = "https://github.com/Leinnan/bevy_assets_reflect"
 authors = ["Piotr Siuszko <siuszko@zoho.com>"]
 keywords = ["bevy", "assets", "reflection", "plugin"]
+include = ["src"]
+
+[features]
+extra_checks = []
+default = ["extra_checks", "json", "postcard"]
+json = ["dep:serde_json"]
+postcard = ["dep:postcard"]
 
 [dependencies]
+postcard = { version = "1.0", features = ["use-std"], optional = true }
 bevy_app = { version = "0.17.0" }
 bevy_asset = { version = "0.17.0" }
+bevy_log = { version = "0.17.0" }
 bevy_ecs = { version = "0.17.0" }
 bevy_reflect = { version = "0.17.0" }
 bevy_ui = { version = "0.17.0" }
@@ -19,5 +28,25 @@ bevy_derive = { version = "0.17.0" }
 bevy_device_lang = { version = "0.6", optional = true }
 atomicow = { version = "1.1", default-features = false, features = ["std"] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", optional = true }
 thiserror = "2.0"
+
+[dev-dependencies]
+bevy = { version = "0.17", default-features = false, features = [
+    "bevy_asset",
+    "bevy_color",
+    "bevy_core_pipeline",
+    "bevy_picking",
+    "bevy_render",
+    "bevy_state",
+    "bevy_text",
+    "bevy_ui",
+    "bevy_ui_render",
+    "bevy_log",
+    "bevy_ui_picking_backend",
+    "bevy_window",
+    "bevy_winit",
+    "default_font",
+    "multi_threaded",
+    "asset_processor"
+] }

@@ -1,2 +1,4 @@
 /target
 /Cargo.lock
+imported_assets
+.DS_Store
