@@ -21,7 +21,8 @@ use thiserror::Error;
 pub struct ReflectAssetPlugin<A> {
     extensions: Vec<&'static str>,
     _marker: PhantomData<A>,
-    default_format: Option<AssetFormat>,
+    default_save_format: Option<AssetFormat>,
+    default_load_format: Option<AssetFormat>,
 }
 
 impl<A: bevy_reflect::Reflect + bevy_asset::Asset> Plugin for ReflectAssetPlugin<A> {
@@ -57,13 +58,21 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> ReflectAssetPlugin<A> {
         Self {
             extensions: extensions.to_owned(),
             _marker: PhantomData,
-            default_format: None,
+            default_load_format: None,
+            default_save_format: None,
         }
     }
     /// Create a new plugin that will load assets from files with the given extensions.
     pub fn with_default_save_format(self, default_format: AssetFormat) -> Self {
         Self {
-            default_format: Some(default_format),
+            default_save_format: Some(default_format),
+            ..self
+        }
+    }
+    /// Create a new plugin that will load assets from files with the given extensions.
+    pub fn with_default_load_format(self, default_format: AssetFormat) -> Self {
+        Self {
+            default_load_format: Some(default_format),
             ..self
         }
     }
@@ -74,7 +83,7 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> ReflectAssetPlugin<A> {
             phantom: PhantomData,
             registry: registry.0.clone(),
             extensions: self.extensions.clone(),
-            default_format: self.default_format,
+            default_format: self.default_load_format,
         }
     }
     /// Create a new saver that will save assets to files with the given extensions.
@@ -82,7 +91,7 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> ReflectAssetPlugin<A> {
         ReflectionAssetSaver {
             phantom: PhantomData,
             registry: registry.0.clone(),
-            default_format: self.default_format,
+            default_format: self.default_save_format,
         }
     }
 }
