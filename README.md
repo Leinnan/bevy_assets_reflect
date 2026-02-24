@@ -21,5 +21,6 @@ app.add_plugins(bevy_assets_reflect::JsonReflectAssetPlugin::<SomeType>::new(
 ## Compatibility
 
 | bevy | bevy_assets_reflect |
-| ---: | ---------: |
-| 0.17 |        0.1 |
+| ---: | -------------: |
+| 0.18 |        0.3     |
+| 0.17 |        0.1,0.2 |

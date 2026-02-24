@@ -11,7 +11,7 @@ use bevy_asset::{
 };
 use bevy_ecs::reflect::AppTypeRegistry;
 use bevy_reflect::{
-    TypeRegistryArc,
+    TypePath, TypeRegistryArc,
     serde::{TypedReflectDeserializer, TypedReflectSerializer},
 };
 use serde::{Deserialize, Serialize, de::DeserializeSeed};
@@ -130,6 +130,7 @@ impl<A: bevy_reflect::Reflect + bevy_asset::Asset> ReflectAssetPlugin<A> {
 }
 
 /// struct that loads assets from files with the given extensions.
+#[derive(TypePath)]
 pub struct ReflectionAssetLoader<T> {
     phantom: PhantomData<T>,
     registry: TypeRegistryArc,
@@ -146,7 +147,7 @@ impl<T> ReflectionAssetLoader<T> {
         if let Some(format) = settings.format.or(self.default_format) {
             return format;
         }
-        let Some(extension) = load_ctx.asset_path().get_full_extension() else {
+        let Some(extension) = load_ctx.path().get_full_extension() else {
             return AssetFormat::Json;
         };
 
@@ -267,6 +268,7 @@ impl<T: bevy_reflect::Reflect + bevy_asset::Asset> bevy_asset::AssetLoader
 }
 
 /// struct that saves assets to files with the given extensions.
+#[derive(TypePath)]
 pub struct ReflectionAssetSaver<T> {
     phantom: PhantomData<T>,
     registry: TypeRegistryArc,
