@@ -286,8 +286,9 @@ impl<A: bevy_asset::Asset + bevy_reflect::Reflect> bevy_asset::saver::AssetSaver
     async fn save(
         &self,
         writer: &mut bevy_asset::io::Writer,
-        asset: bevy_asset::saver::SavedAsset<'_, Self::Asset>,
+        asset: bevy_asset::saver::SavedAsset<'_, '_, Self::Asset>,
         settings: &Self::Settings,
+        _asset_path: bevy_asset::AssetPath<'_>,
     ) -> Result<<Self::OutputLoader as bevy_asset::AssetLoader>::Settings, Self::Error> {
         let Some(format) = settings.format.or(self.default_format) else {
             return Err(ReflectLoaderError::NoFormatSpecified);
