@@ -58,9 +58,9 @@ fn on_loaded(
                 ..Default::default()
             },
             children![
-                (Text::new(format!("Some data field -> {}", &asset.some_data))),
-                (Text::new(format!("Another data field -> {}", &asset.another))),
-                (Text::new(format!("Skipped field -> {}", &asset.skipped_field)))
+                (Text::new(format!("Some data field -> {}", asset.some_data))),
+                (Text::new(format!("Another data field -> {}", asset.another))),
+                (Text::new(format!("Skipped field -> {}", asset.skipped_field)))
             ],
         ));
     }
